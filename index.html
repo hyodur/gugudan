@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>구구단 마스터 🎯</title>
+    
+    <!-- PWA 설정 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="구구단마스터">
+    
+    <!-- SEO 및 소셜 미디어 -->
+    <meta name="description" content="초등학생을 위한 재미있는 구구단 학습 게임 - 게임적 요소와 보상 시스템으로 즐겁게 학습하세요!">
+    <meta name="keywords" content="구구단, 수학, 초등학생, 학습게임, 교육, 구구단게임">
+    <meta name="author" content="듀르">
+    
+    <meta property="og:title" content="구구단 마스터 🎯">
+    <meta property="og:description" content="초등학생을 위한 재미있는 구구단 학습 게임">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+    
+    <!-- 파비콘 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="font-sans bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 min-h-screen">
+    <!-- 로딩 화면 -->
+    <div id="loading-screen" class="fixed inset-0 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="text-8xl mb-4">🎯</div>
+            <h1 class="text-4xl font-bold text-white mb-4">구구단 마스터</h1>
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <!-- 메인 화면 -->
+    <div id="main-screen" class="hidden min-h-screen p-4">
+        <!-- 상단 헤더 -->
+        <header class="flex justify-between items-center mb-6">
+            <div class="flex items-center">
+                <h1 class="text-3xl font-bold text-white mr-4">🎯 구구단 마스터</h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <!-- 코인 -->
+                <div class="bg-warning rounded-full px-4 py-2 flex items-center shadow-fun">
+                    <i class="fas fa-coins text-yellow-900 mr-2 text-lg"></i>
+                    <span id="coin-count" class="font-bold text-yellow-900 text-lg">0</span>
+                </div>
+                <!-- 레벨 -->
+                <div class="bg-success rounded-full px-4 py-2 flex items-center shadow-fun">
+                    <i class="fas fa-star text-blue-900 mr-2 text-lg"></i>
+                    <span id="level-display" class="font-bold text-blue-900 text-lg">Lv.1</span>
+                </div>
+                <!-- 설정 버튼 -->
+                <button id="settings-btn" class="btn-fun p-3">
+                    <i class="fas fa-cog text-lg"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- 캐릭터 영역 -->
+        <div class="text-center mb-8">
+            <div id="character-display" class="relative inline-block">
+                <div class="text-8xl mb-4" id="character-sprite">🧑‍🎓</div>
+                <div class="absolute -top-2 -right-2 bg-blue-500 rounded-full w-8 h-8 flex items-center justify-center">
+                    <span id="character-level" class="text-white text-sm font-bold">1</span>
+                </div>
+            </div>
+            <div class="card-fun p-4 max-w-md mx-auto">
+                <div class="flex justify-between text-gray-700 text-sm mb-2 font-semibold">
+                    <span>경험치</span>
+                    <span id="exp-text">0/100</span>
+                </div>
+                <div class="progress-fun h-4">
+                    <div id="exp-bar" class="progress-fill h-4" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 일일 퀘스트 -->
+        <div class="card-fun p-6 mb-6 max-w-2xl mx-auto shadow-fun">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="text-3xl mr-3">📋</span>
+                오늘의 퀘스트
+            </h2>
+            <div id="daily-quests" class="space-y-3">
+                <!-- 퀘스트들이 여기에 동적으로 추가됩니다 -->
+            </div>
+        </div>
+
+        <!-- 메인 메뉴 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <!-- 구구단 게임 -->
+            <div class="card-fun p-8 text-center cursor-pointer group" id="start-game-btn">
+                <div class="text-6xl mb-4 group-hover:animate-bounce">🎮</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">구구단 게임</h3>
+                <p class="text-gray-600 mb-4">재미있게 구구단을 연습해보세요!</p>
+                <div class="btn-fun btn-success w-full">
+                    <i class="fas fa-play"></i>
+                    게임 시작
+                </div>
+            </div>
+
+            <!-- 상점 -->
+            <div class="card-fun p-8 text-center cursor-pointer group" id="shop-btn">
+                <div class="text-6xl mb-4 group-hover:animate-spin">🛍️</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">상점</h3>
+                <p class="text-gray-600 mb-4">캐릭터 스킨과 아이템을 구매하세요!</p>
+                <div class="btn-fun btn-warning w-full">
+                    <i class="fas fa-shopping-cart"></i>
+                    상점 구경
+                </div>
+            </div>
+
+            <!-- 진행 상황 -->
+            <div class="card-fun p-8 text-center cursor-pointer group" id="progress-btn">
+                <div class="text-6xl mb-4 group-hover:animate-pulse">📊</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">진행 상황</h3>
+                <p class="text-gray-600 mb-4">내 학습 기록을 확인해보세요!</p>
+                <div class="btn-fun w-full">
+                    <i class="fas fa-chart-line"></i>
+                    기록 보기
+                </div>
+            </div>
+
+            <!-- 설정 -->
+            <div class="card-fun p-8 text-center cursor-pointer group" id="settings-menu-btn">
+                <div class="text-6xl mb-4 group-hover:animate-spin">⚙️</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">설정</h3>
+                <p class="text-gray-600 mb-4">게임 설정을 변경하세요!</p>
+                <div class="btn-fun btn-primary w-full">
+                    <i class="fas fa-cog"></i>
+                    설정 변경
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임 화면 -->
+    <div id="game-screen" class="hidden min-h-screen p-4">
+        <!-- 게임 헤더 -->
+        <header class="flex justify-between items-center mb-6">
+            <button id="back-to-menu" class="btn-fun btn-danger">
+                <i class="fas fa-arrow-left"></i>
+                메뉴로
+            </button>
+            <div class="flex items-center space-x-4">
+                <div class="bg-blue-500 rounded-full px-4 py-2 text-white font-bold">
+                    점수: <span id="game-score">0</span>
+                </div>
+                <div class="bg-purple-500 rounded-full px-4 py-2 text-white font-bold">
+                    연속: <span id="streak-count">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 게임 영역 -->
+        <div class="max-w-2xl mx-auto">
+            <div class="card-fun p-8 text-center shadow-fun">
+                <div id="question-display" class="text-5xl font-bold text-gray-800 mb-8 animate-pulse">
+                    2 × 3 = ?
+                </div>
+                
+                <div id="answer-input-area" class="mb-8">
+                    <input type="number" id="answer-input" class="input-fun text-4xl w-48" placeholder="답을 입력하세요">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <button id="submit-answer" class="btn-fun btn-success text-xl py-4">
+                        <i class="fas fa-check"></i>
+                        정답 확인
+                    </button>
+                    <button id="skip-question" class="btn-fun text-xl py-4">
+                        <i class="fas fa-forward"></i>
+                        건너뛰기
+                    </button>
+                </div>
+
+                <div id="feedback-area" class="text-xl font-bold h-8">
+                    <!-- 정답/오답 피드백이 여기에 표시됩니다 -->
+                </div>
+            </div>
+
+            <!-- 게임 통계 -->
+            <div class="grid grid-cols-3 gap-4 mt-6">
+                <div class="stat-card bg-success">
+                    <div class="text-3xl font-bold text-blue-900 mb-2" id="correct-count">0</div>
+                    <div class="text-blue-800 font-semibold flex items-center justify-center">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        정답
+                    </div>
+                </div>
+                <div class="stat-card bg-danger">
+                    <div class="text-3xl font-bold text-red-900 mb-2" id="wrong-count">0</div>
+                    <div class="text-red-800 font-semibold flex items-center justify-center">
+                        <i class="fas fa-times-circle mr-1"></i>
+                        오답
+                    </div>
+                </div>
+                <div class="stat-card bg-warning">
+                    <div class="text-3xl font-bold text-yellow-900 mb-2" id="total-questions">0</div>
+                    <div class="text-yellow-800 font-semibold flex items-center justify-center">
+                        <i class="fas fa-list-ol mr-1"></i>
+                        총 문제
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 상점 화면 -->
+    <div id="shop-screen" class="hidden min-h-screen p-4">
+        <header class="flex justify-between items-center mb-6">
+            <button id="back-to-menu-shop" class="btn-fun btn-danger">
+                <i class="fas fa-arrow-left"></i>
+                메뉴로
+            </button>
+            <div class="bg-warning rounded-full px-6 py-3 flex items-center shadow-fun">
+                <i class="fas fa-coins text-yellow-900 mr-2 text-xl"></i>
+                <span id="shop-coin-count" class="font-bold text-yellow-900 text-xl">0</span>
+            </div>
+        </header>
+
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold text-white text-center mb-8">🛍️ 상점</h2>
+            
+            <!-- 캐릭터 스킨 섹션 -->
+            <div class="card-fun p-6 mb-6 shadow-fun">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="text-3xl mr-3">👤</span>
+                    캐릭터 스킨
+                </h3>
+                <div id="character-skins" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- 스킨들이 여기에 동적으로 추가됩니다 -->
+                </div>
+            </div>
+
+            <!-- 배경 테마 섹션 -->
+            <div class="card-fun p-6 shadow-fun">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="text-3xl mr-3">🎨</span>
+                    배경 테마
+                </h3>
+                <div id="background-themes" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <!-- 테마들이 여기에 동적으로 추가됩니다 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 알림 모달 -->
+    <div id="notification-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="card-fun p-8 max-w-sm mx-4 text-center shadow-fun-hover transform scale-105">
+            <div id="notification-icon" class="text-5xl mb-4 animate-bounce">🎉</div>
+            <div id="notification-message" class="text-lg font-bold mb-6 text-gray-800">축하합니다!</div>
+            <button id="close-notification" class="btn-fun btn-success w-full">
+                <i class="fas fa-check"></i>
+                확인
+            </button>
+        </div>
+    </div>
+
+    <script src="js/database.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
