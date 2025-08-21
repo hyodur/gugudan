@@ -351,8 +351,9 @@ class MultiplicationMaster {
             );
             
             // 퀘스트 진행도 업데이트
-            await this.updateQuestProgress('correct_answers', 1);
-            await this.updateQuestProgress('streak', 0, this.gameSession.streak);
+            this.updateQuestProgress('correct_answers', 1);
+            this.updateQuestProgress('total_questions', 1);
+            this.updateQuestProgress('streak', 0, this.gameSession.streak);
             
             // 최대 연속 정답 기록 업데이트
             if (this.gameSession.streak > this.gameData.max_streak) {
@@ -387,8 +388,8 @@ class MultiplicationMaster {
             }
         }
         
-        // 총 문제 수 퀘스트 업데이트
-        await this.updateQuestProgress('total_questions', 1);
+        // 오답도 총 문제 수에 포함
+        this.updateQuestProgress('total_questions', 1);
         
         this.updateGameUI();
         await this.saveGameData();
