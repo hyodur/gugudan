@@ -881,54 +881,112 @@ loadSavedTheme() {
     
     // 설정 화면 표시
     showSettings() {
-   const buttons = [
-        {
-            text: '데이터 초기화',
-            className: 'bg-red-500 hover:bg-red-600 text-white',
-            onClick: () => this.resetGameData()
-        },
-        {
-            text: '취소',
-            className: 'bg-gray-500 hover:bg-gray-600 text-white',
-            onClick: () => {}
+        const options = [
+            '⚙️ 사운드 설정',
+            '🎨 테마 변경', 
+            '📊 통계 보기',
+            '🗑️ 데이터 초기화',
+            '❌ 취소'
+        ];
+        
+        let message = '설정을 선택하세요:\n\n';
+        options.forEach((option, index) => {
+            message += `${index + 1}. ${option}\n`;
+        });
+        
+        const choice = prompt(message + '\n번호를 입력하세요 (1-5):');
+        const choiceNum = parseInt(choice);
+        
+        switch(choiceNum) {
+            case 1:
+                this.showNotification('🔊', '사운드 설정 기능은 곧 추가될 예정입니다!');
+                break;
+            case 2:
+                this.showNotification('🎨', '테마 변경 기능은 곧 추가될 예정입니다!');
+                break;
+            case 3:
+                this.showGameStats();
+                break;
+            case 4:
+                this.confirmDataReset();
+                break;
+            case 5:
+            default:
+                return; // 취소 또는 잘못된 입력
         }
-    ];
+    }
     
-    if (window.uiManager) {
-        window.uiManager.showModal(
-            '⚙️ 게임 설정',
-            '게임 데이터를 초기화하면 모든 진행사항이 삭제됩니다.<br><strong>정말로 초기화하시겠습니까?</strong>',
-            buttons
+    // 게임 통계 표시
+    showGameStats() {
+        const stats = `
+📊 나의 게임 통계
+
+🎯 레벨: ${this.gameData.level}
+⭐ 경험치: ${this.gameData.exp}/${this.gameData.exp_required}
+💰 코인: ${this.gameData.coins}개
+
+✅ 총 정답: ${this.gameData.total_correct}문제
+❌ 총 오답: ${this.gameData.total_wrong}문제
+🔥 최고 연속: ${this.gameData.max_streak}문제
+
+📅 가입일: ${new Date(this.gameData.created_at).toLocaleDateString()}
+🕐 마지막 플레이: ${new Date(this.gameData.last_login).toLocaleDateString()}
+        `;
+        
+        this.showNotification('📊', stats);
+    }
+    
+    // 데이터 초기화 확인
+    confirmDataReset() {
+        const confirmed = confirm(
+            '⚠️ 정말로 모든 게임 데이터를 초기화하시겠습니까?\n\n' +
+            '• 레벨, 경험치, 코인이 모두 사라집니다\n' +
+            '• 구매한 스킨과 완료한 퀘스트도 초기화됩니다\n' +
+            '• 이 작업은 되돌릴 수 없습니다\n\n' +
+            '초기화하려면 "확인"을 누르세요.'
         );
-    } else {
-        // 간단한 확인창
-        if (confirm('정말로 게임 데이터를 초기화하시겠습니까?\n모든 진행사항이 삭제됩니다.')) {
+        
+        if (confirmed) {
             this.resetGameData();
         }
     }
-}
-
-// 게임 데이터 초기화 함수
-resetGameData() {
-    // 로컬 스토리지 완전 삭제
-    localStorage.removeItem('multiplicationMaster');
-    localStorage.removeItem('ownedSkins');
-    localStorage.removeItem('ownedThemes');
-    localStorage.removeItem('currentTheme');
-    localStorage.removeItem('dailyQuests');
-    localStorage.removeItem('lastQuestDate');
     
-    // 기본 배경으로 되돌리기
-    document.body.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
-    
-    // 페이지 새로고침
-    this.showNotification('✅', '게임 데이터가 초기화되었습니다!\\n잠시 후 페이지가 새로고침됩니다.');
-    
-    setTimeout(() => {
-        location.reload();
-    }, 2000);
-}
-}
+    // 게임 데이터 완전 초기화
+    resetGameData() {
+        try {
+            // 로컬 스토리지 완전 삭제
+            localStorage.removeItem('multiplicationMaster');
+            localStorage.removeItem('dailyQuests');
+            localStorage.removeItem('lastQuestDate');
+            localStorage.removeItem('ownedSkins');
+            
+            // 게임 데이터 초기화
+            this.gameData = this.getDefaultGameData();
+            this.dailyQuests = [];
+            this.ownedItems = [];
+            
+            // UI 업데이트
+            this.updateUI();
+            this.updateDailyQuests();
+            
+            // 성공 알림
+            this.showNotification('✅', 
+                '게임 데이터가 초기화되었습니다!\n' +
+                '새로운 학습 여정을 시작하세요! 🎮'
+            );
+            
+            // 메인 화면으로 이동
+            setTimeout(() => {
+                this.showMainScreen();
+            }, 2000);
+            
+            console.log('🔄 게임 데이터 완전 초기화 완료');
+            
+        } catch (error) {
+            console.error('❌ 데이터 초기화 오류:', error);
+            this.showNotification('❌', '데이터 초기화 중 오류가 발생했습니다.');
+        }
+    }
 
 // 앱 초기화
 let app;
