@@ -235,11 +235,15 @@ async saveGameData() {
     }
     
     showMainScreen() {
-        this.hideAllScreens();
-        document.getElementById('main-screen').classList.remove('hidden');
-        this.currentScreen = 'main';
-        this.updateUI();
-    }
+    this.hideAllScreens();
+    document.getElementById('main-screen').classList.remove('hidden');
+    this.currentScreen = 'main';
+    
+    // 저장된 테마 자동 적용
+    this.loadSavedTheme();
+    
+    this.updateUI();
+}
     
     showGameScreen() {
         this.hideAllScreens();
@@ -848,6 +852,25 @@ async applyTheme(theme) {
     document.body.style.background = `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})`;
     this.loadBackgroundThemes();
     this.showNotification('✨', `테마 "${theme.name}"을 적용했어요!`);
+}
+
+// 저장된 테마 로드  ← 여기에 추가!
+loadSavedTheme() {
+    const currentTheme = localStorage.getItem('currentTheme');
+    if (currentTheme && currentTheme !== 'theme_1') {
+        const themeData = {
+            'theme_2': ['#11998e', '#38ef7d'], // 숲
+            'theme_3': ['#2980B9', '#6BB6FF'], // 바다  
+            'theme_4': ['#ff9a9e', '#fecfef'], // 노을
+            'theme_5': ['#0c0c0c', '#434343'], // 우주
+            'theme_6': ['#ffecd2', '#fcb69f']  // 벚꽃
+        };
+        
+        if (themeData[currentTheme]) {
+            const colors = themeData[currentTheme];
+            document.body.style.background = `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`;
+        }
+    }
 }
     
     // 설정 화면 표시
