@@ -44,76 +44,76 @@ class MultiplicationMaster {
     }
     
     // 로컬 스토리지 우선 게임 데이터 로드
-async loadGameData() {
-    try {
-        // 1순위: 로컬 스토리지에서 로드
-        const saved = localStorage.getItem('multiplicationMaster');
-        if (saved) {
-            this.gameData = JSON.parse(saved);
-            console.log('✅ 로컬 데이터 로드 성공:', this.gameData);
-            this.updateUI();
-            return;
-        }
-        
-        // 2순위: 데이터베이스에서 로드 시도
+    async loadGameData() {
         try {
-            this.gameData = await window.dbManager.getUserProgress();
-            // 로컬 스토리지에도 저장
-            await this.saveGameData();
-            console.log('✅ 데이터베이스에서 로드 후 로컬 저장');
-        } catch (dbError) {
-            // 3순위: 기본값 사용
+            // 1순위: 로컬 스토리지에서 로드
+            const saved = localStorage.getItem('multiplicationMaster');
+            if (saved) {
+                this.gameData = JSON.parse(saved);
+                console.log('✅ 로컬 데이터 로드 성공:', this.gameData);
+                this.updateUI();
+                return;
+            }
+            
+            // 2순위: 데이터베이스에서 로드 시도
+            try {
+                this.gameData = await window.dbManager.getUserProgress();
+                // 로컬 스토리지에도 저장
+                await this.saveGameData();
+                console.log('✅ 데이터베이스에서 로드 후 로컬 저장');
+            } catch (dbError) {
+                // 3순위: 기본값 사용
+                this.gameData = this.getDefaultGameData();
+                await this.saveGameData();
+                console.log('✅ 기본 데이터로 시작');
+            }
+            
+            this.updateUI();
+        } catch (error) {
+            console.error('❌ 게임 데이터 로드 오류:', error);
             this.gameData = this.getDefaultGameData();
-            await this.saveGameData();
-            console.log('✅ 기본 데이터로 시작');
+            this.updateUI();
         }
-        
-        this.updateUI();
-    } catch (error) {
-        console.error('❌ 게임 데이터 로드 오류:', error);
-        this.gameData = this.getDefaultGameData();
-        this.updateUI();
     }
-}
 
-// 기본 게임 데이터
-getDefaultGameData() {
-    return {
-        id: 'local_user_' + Date.now(),
-        username: '학습자',
-        level: 1,
-        exp: 0,
-        exp_required: 100,
-        coins: 0,
-        total_correct: 0,
-        total_wrong: 0,
-        max_streak: 0,
-        current_skin: '🧑‍🎓',
-        current_theme: 'default',
-        last_login: new Date().toISOString(),
-        created_at: new Date().toISOString()
-    };
-}
+    // 기본 게임 데이터
+    getDefaultGameData() {
+        return {
+            id: 'local_user_' + Date.now(),
+            username: '학습자',
+            level: 1,
+            exp: 0,
+            exp_required: 100,
+            coins: 0,
+            total_correct: 0,
+            total_wrong: 0,
+            max_streak: 0,
+            current_skin: '🧑‍🎓',
+            current_theme: 'default',
+            last_login: new Date().toISOString(),
+            created_at: new Date().toISOString()
+        };
+    }
     
     // 강화된 게임 데이터 저장
-async saveGameData() {
-    try {
-        // 항상 로컬 스토리지에 저장 (최우선)
-        this.gameData.last_login = new Date().toISOString();
-        localStorage.setItem('multiplicationMaster', JSON.stringify(this.gameData));
-        console.log('✅ 로컬 스토리지 저장 성공');
-        
-        // 데이터베이스 백업도 시도 (실패해도 괜찮음)
+    async saveGameData() {
         try {
-            await window.dbManager.updateUserProgress(this.gameData);
-            console.log('✅ 데이터베이스 백업 성공');
-        } catch (dbError) {
-            console.log('⚠️ 데이터베이스 백업 실패 (로컬은 안전)');
+            // 항상 로컬 스토리지에 저장 (최우선)
+            this.gameData.last_login = new Date().toISOString();
+            localStorage.setItem('multiplicationMaster', JSON.stringify(this.gameData));
+            console.log('✅ 로컬 스토리지 저장 성공');
+            
+            // 데이터베이스 백업도 시도 (실패해도 괜찮음)
+            try {
+                await window.dbManager.updateUserProgress(this.gameData);
+                console.log('✅ 데이터베이스 백업 성공');
+            } catch (dbError) {
+                console.log('⚠️ 데이터베이스 백업 실패 (로컬은 안전)');
+            }
+        } catch (error) {
+            console.error('❌ 게임 데이터 저장 오류:', error);
         }
-    } catch (error) {
-        console.error('❌ 게임 데이터 저장 오류:', error);
     }
-}
     
     // 일일 퀘스트 로드
     async loadDailyQuests() {
@@ -235,15 +235,15 @@ async saveGameData() {
     }
     
     showMainScreen() {
-    this.hideAllScreens();
-    document.getElementById('main-screen').classList.remove('hidden');
-    this.currentScreen = 'main';
-    
-    // 저장된 테마 자동 적용
-    this.loadSavedTheme();
-    
-    this.updateUI();
-}
+        this.hideAllScreens();
+        document.getElementById('main-screen').classList.remove('hidden');
+        this.currentScreen = 'main';
+        
+        // 저장된 테마 자동 적용
+        this.loadSavedTheme();
+        
+        this.updateUI();
+    }
     
     showGameScreen() {
         this.hideAllScreens();
@@ -398,18 +398,21 @@ async saveGameData() {
             feedbackArea.className = 'text-xl font-bold h-8 text-green-600';
             
             // 문제 통계 업데이트
-            await window.dbManager.updateProblemStats(
-                this.gameSession.currentQuestion.num1,
-                this.gameSession.currentQuestion.num2,
-                true,
-                Math.floor(responseTime / 1000)
-            );
+            try {
+                await window.dbManager.updateProblemStats(
+                    this.gameSession.currentQuestion.num1,
+                    this.gameSession.currentQuestion.num2,
+                    true,
+                    Math.floor(responseTime / 1000)
+                );
+            } catch (error) {
+                console.log('문제 통계 업데이트 실패:', error);
+            }
             
             // 퀘스트 진행도 업데이트
             this.updateLocalQuestProgress('correct_answers', 1);
             this.updateLocalQuestProgress('total_questions', 1);
             this.updateLocalQuestProgress('streak', 0, this.gameSession.streak);
-
             
             // 최대 연속 정답 기록 업데이트
             if (this.gameSession.streak > this.gameData.max_streak) {
@@ -431,12 +434,16 @@ async saveGameData() {
             feedbackArea.className = 'text-xl font-bold h-8 text-red-600';
             
             // 문제 통계 업데이트
-            await window.dbManager.updateProblemStats(
-                this.gameSession.currentQuestion.num1,
-                this.gameSession.currentQuestion.num2,
-                false,
-                Math.floor(responseTime / 1000)
-            );
+            try {
+                await window.dbManager.updateProblemStats(
+                    this.gameSession.currentQuestion.num1,
+                    this.gameSession.currentQuestion.num2,
+                    false,
+                    Math.floor(responseTime / 1000)
+                );
+            } catch (error) {
+                console.log('문제 통계 업데이트 실패:', error);
+            }
             
             // 사운드 재생
             if (window.gameEngine) {
@@ -696,10 +703,10 @@ async saveGameData() {
                         owned ? 
                             (selected ? '<p class="text-green-500 text-xs">착용중</p>' : '<p class="text-blue-500 text-xs cursor-pointer">착용하기</p>') :
                             canAfford ? 
-    `<div class="text-yellow-600 text-xs">구매하기</div>
-     <div class="text-yellow-600 text-xs font-bold">${skin.price} 코인</div>` : 
-    `<div class="text-red-500 text-xs">잠김</div>
-     <div class="text-yellow-600 text-xs font-bold">${skin.price} 코인</div>`
+                                `<div class="text-yellow-600 text-xs">구매하기</div>
+                                 <div class="text-yellow-600 text-xs font-bold">${skin.price} 코인</div>` : 
+                                `<div class="text-red-500 text-xs">잠김</div>
+                                 <div class="text-yellow-600 text-xs font-bold">${skin.price} 코인</div>`
                     }
                 `;
                 
@@ -779,105 +786,105 @@ async saveGameData() {
     
     // 배경 테마 로드
     async loadBackgroundThemes() {
-    const themesContainer = document.getElementById('background-themes');
-    
-    const localThemes = [
-        { id: 'theme_1', name: '기본', price: 0, colors: ['#667eea', '#764ba2'], level_required: 1 },
-        { id: 'theme_2', name: '숲', price: 80, colors: ['#11998e', '#38ef7d'], level_required: 5 },
-        { id: 'theme_3', name: '바다', price: 100, colors: ['#2980B9', '#6BB6FF'], level_required: 7 },
-        { id: 'theme_4', name: '노을', price: 120, colors: ['#ff9a9e', '#fecfef'], level_required: 10 },
-        { id: 'theme_5', name: '우주', price: 200, colors: ['#0c0c0c', '#434343'], level_required: 15 },
-        { id: 'theme_6', name: '벚꽃', price: 150, colors: ['#ffecd2', '#fcb69f'], level_required: 12 }
-    ];
-    
-    // 소유한 테마들 확인
-    const ownedThemesLocal = localStorage.getItem('ownedThemes');
-    let ownedThemeIds = ownedThemesLocal ? JSON.parse(ownedThemesLocal) : ['theme_1'];
-    
-    // 현재 선택된 테마
-    const currentTheme = localStorage.getItem('currentTheme') || 'theme_1';
-    
-    themesContainer.innerHTML = '';
-    
-    localThemes.forEach(theme => {
-        const owned = ownedThemeIds.includes(theme.id);
-        const selected = currentTheme === theme.id;
-        const canAfford = this.gameData.coins >= theme.price;
-        const levelMet = this.gameData.level >= theme.level_required;
+        const themesContainer = document.getElementById('background-themes');
         
-        const themeElement = document.createElement('div');
-        themeElement.className = `skin-item ${selected ? 'skin-selected' : ''} ${!owned && (!canAfford || !levelMet) ? 'skin-locked' : ''}`;
-        themeElement.style.background = `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})`;
+        const localThemes = [
+            { id: 'theme_1', name: '기본', price: 0, colors: ['#667eea', '#764ba2'], level_required: 1 },
+            { id: 'theme_2', name: '숲', price: 80, colors: ['#11998e', '#38ef7d'], level_required: 5 },
+            { id: 'theme_3', name: '바다', price: 100, colors: ['#2980B9', '#6BB6FF'], level_required: 7 },
+            { id: 'theme_4', name: '노을', price: 120, colors: ['#ff9a9e', '#fecfef'], level_required: 10 },
+            { id: 'theme_5', name: '우주', price: 200, colors: ['#0c0c0c', '#434343'], level_required: 15 },
+            { id: 'theme_6', name: '벚꽃', price: 150, colors: ['#ffecd2', '#fcb69f'], level_required: 12 }
+        ];
         
-        themeElement.innerHTML = `
-            <div class="text-4xl mb-2">🎨</div>
-            <h4 class="font-bold text-white text-sm drop-shadow-lg">${theme.name}</h4>
-            ${!levelMet && !owned ? 
-                `<p class="text-red-200 text-xs">레벨 ${theme.level_required} 필요</p>` :
-                owned ? 
-                    (selected ? '<p class="text-green-200 text-xs">사용중</p>' : '<p class="text-blue-200 text-xs cursor-pointer">적용하기</p>') :
-                   canAfford ? 
-    `<div class="text-yellow-200 text-xs">구매하기</div>
-     <div class="text-yellow-200 text-xs font-bold">${theme.price} 코인</div>` : 
-    `<div class="text-red-200 text-xs">잠김</div>
-     <div class="text-yellow-200 text-xs font-bold">${theme.price} 코인</div>`
-            }
-        `;
-        
-        if (owned && !selected && levelMet) {
-            themeElement.addEventListener('click', () => this.applyTheme(theme));
-        } else if (!owned && canAfford && levelMet) {
-            themeElement.addEventListener('click', () => this.buyTheme(theme));
-        }
-        
-        themesContainer.appendChild(themeElement);
-    });
-}
-
-// 테마 구매
-async buyTheme(theme) {
-    if (this.gameData.coins >= theme.price) {
-        this.gameData.coins -= theme.price;
-        
+        // 소유한 테마들 확인
         const ownedThemesLocal = localStorage.getItem('ownedThemes');
         let ownedThemeIds = ownedThemesLocal ? JSON.parse(ownedThemesLocal) : ['theme_1'];
-        ownedThemeIds.push(theme.id);
-        localStorage.setItem('ownedThemes', JSON.stringify(ownedThemeIds));
         
-        await this.saveGameData();
-        this.updateUI();
-        this.loadBackgroundThemes();
+        // 현재 선택된 테마
+        const currentTheme = localStorage.getItem('currentTheme') || 'theme_1';
         
-        this.showNotification('🎨', `새 테마 "${theme.name}"을 구매했어요!`);
+        themesContainer.innerHTML = '';
+        
+        localThemes.forEach(theme => {
+            const owned = ownedThemeIds.includes(theme.id);
+            const selected = currentTheme === theme.id;
+            const canAfford = this.gameData.coins >= theme.price;
+            const levelMet = this.gameData.level >= theme.level_required;
+            
+            const themeElement = document.createElement('div');
+            themeElement.className = `skin-item ${selected ? 'skin-selected' : ''} ${!owned && (!canAfford || !levelMet) ? 'skin-locked' : ''}`;
+            themeElement.style.background = `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})`;
+            
+            themeElement.innerHTML = `
+                <div class="text-4xl mb-2">🎨</div>
+                <h4 class="font-bold text-white text-sm drop-shadow-lg">${theme.name}</h4>
+                ${!levelMet && !owned ? 
+                    `<p class="text-red-200 text-xs">레벨 ${theme.level_required} 필요</p>` :
+                    owned ? 
+                        (selected ? '<p class="text-green-200 text-xs">사용중</p>' : '<p class="text-blue-200 text-xs cursor-pointer">적용하기</p>') :
+                       canAfford ? 
+                            `<div class="text-yellow-200 text-xs">구매하기</div>
+                             <div class="text-yellow-200 text-xs font-bold">${theme.price} 코인</div>` : 
+                            `<div class="text-red-200 text-xs">잠김</div>
+                             <div class="text-yellow-200 text-xs font-bold">${theme.price} 코인</div>`
+                }
+            `;
+            
+            if (owned && !selected && levelMet) {
+                themeElement.addEventListener('click', () => this.applyTheme(theme));
+            } else if (!owned && canAfford && levelMet) {
+                themeElement.addEventListener('click', () => this.buyTheme(theme));
+            }
+            
+            themesContainer.appendChild(themeElement);
+        });
     }
-}
 
-// 테마 적용
-async applyTheme(theme) {
-    localStorage.setItem('currentTheme', theme.id);
-    document.body.style.background = `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})`;
-    this.loadBackgroundThemes();
-    this.showNotification('✨', `테마 "${theme.name}"을 적용했어요!`);
-}
-
-// 저장된 테마 로드  ← 여기에 추가!
-loadSavedTheme() {
-    const currentTheme = localStorage.getItem('currentTheme');
-    if (currentTheme && currentTheme !== 'theme_1') {
-        const themeData = {
-            'theme_2': ['#11998e', '#38ef7d'], // 숲
-            'theme_3': ['#2980B9', '#6BB6FF'], // 바다  
-            'theme_4': ['#ff9a9e', '#fecfef'], // 노을
-            'theme_5': ['#0c0c0c', '#434343'], // 우주
-            'theme_6': ['#ffecd2', '#fcb69f']  // 벚꽃
-        };
-        
-        if (themeData[currentTheme]) {
-            const colors = themeData[currentTheme];
-            document.body.style.background = `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`;
+    // 테마 구매
+    async buyTheme(theme) {
+        if (this.gameData.coins >= theme.price) {
+            this.gameData.coins -= theme.price;
+            
+            const ownedThemesLocal = localStorage.getItem('ownedThemes');
+            let ownedThemeIds = ownedThemesLocal ? JSON.parse(ownedThemesLocal) : ['theme_1'];
+            ownedThemeIds.push(theme.id);
+            localStorage.setItem('ownedThemes', JSON.stringify(ownedThemeIds));
+            
+            await this.saveGameData();
+            this.updateUI();
+            this.loadBackgroundThemes();
+            
+            this.showNotification('🎨', `새 테마 "${theme.name}"을 구매했어요!`);
         }
     }
-}
+
+    // 테마 적용
+    async applyTheme(theme) {
+        localStorage.setItem('currentTheme', theme.id);
+        document.body.style.background = `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})`;
+        this.loadBackgroundThemes();
+        this.showNotification('✨', `테마 "${theme.name}"을 적용했어요!`);
+    }
+
+    // 저장된 테마 로드
+    loadSavedTheme() {
+        const currentTheme = localStorage.getItem('currentTheme');
+        if (currentTheme && currentTheme !== 'theme_1') {
+            const themeData = {
+                'theme_2': ['#11998e', '#38ef7d'], // 숲
+                'theme_3': ['#2980B9', '#6BB6FF'], // 바다  
+                'theme_4': ['#ff9a9e', '#fecfef'], // 노을
+                'theme_5': ['#0c0c0c', '#434343'], // 우주
+                'theme_6': ['#ffecd2', '#fcb69f']  // 벚꽃
+            };
+            
+            if (themeData[currentTheme]) {
+                const colors = themeData[currentTheme];
+                document.body.style.background = `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`;
+            }
+        }
+    }
     
     // 설정 화면 표시
     showSettings() {
@@ -918,8 +925,7 @@ loadSavedTheme() {
     
     // 게임 통계 표시
     showGameStats() {
-        const stats = `
-📊 나의 게임 통계
+        const stats = `📊 나의 게임 통계
 
 🎯 레벨: ${this.gameData.level}
 ⭐ 경험치: ${this.gameData.exp}/${this.gameData.exp_required}
@@ -930,8 +936,7 @@ loadSavedTheme() {
 🔥 최고 연속: ${this.gameData.max_streak}문제
 
 📅 가입일: ${new Date(this.gameData.created_at).toLocaleDateString()}
-🕐 마지막 플레이: ${new Date(this.gameData.last_login).toLocaleDateString()}
-        `;
+🕐 마지막 플레이: ${new Date(this.gameData.last_login).toLocaleDateString()}`;
         
         this.showNotification('📊', stats);
     }
@@ -959,11 +964,16 @@ loadSavedTheme() {
             localStorage.removeItem('dailyQuests');
             localStorage.removeItem('lastQuestDate');
             localStorage.removeItem('ownedSkins');
+            localStorage.removeItem('ownedThemes');
+            localStorage.removeItem('currentTheme');
             
             // 게임 데이터 초기화
             this.gameData = this.getDefaultGameData();
             this.dailyQuests = [];
             this.ownedItems = [];
+            
+            // 기본 테마로 되돌리기
+            document.body.style.background = '';
             
             // UI 업데이트
             this.updateUI();
@@ -971,8 +981,7 @@ loadSavedTheme() {
             
             // 성공 알림
             this.showNotification('✅', 
-                '게임 데이터가 초기화되었습니다!\n' +
-                '새로운 학습 여정을 시작하세요! 🎮'
+                '게임 데이터가 초기화되었습니다!\\n새로운 학습 여정을 시작하세요! 🎮'
             );
             
             // 메인 화면으로 이동
@@ -987,9 +996,11 @@ loadSavedTheme() {
             this.showNotification('❌', '데이터 초기화 중 오류가 발생했습니다.');
         }
     }
+}
 
 // 앱 초기화
 let app;
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 구구단 마스터 시작!');
     app = new MultiplicationMaster();
 });
