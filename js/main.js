@@ -43,26 +43,77 @@ class MultiplicationMaster {
         }
     }
     
-    // 데이터베이스에서 게임 데이터 로드
-    async loadGameData() {
+    // 로컬 스토리지 우선 게임 데이터 로드
+async loadGameData() {
+    try {
+        // 1순위: 로컬 스토리지에서 로드
+        const saved = localStorage.getItem('multiplicationMaster');
+        if (saved) {
+            this.gameData = JSON.parse(saved);
+            console.log('✅ 로컬 데이터 로드 성공:', this.gameData);
+            this.updateUI();
+            return;
+        }
+        
+        // 2순위: 데이터베이스에서 로드 시도
         try {
             this.gameData = await window.dbManager.getUserProgress();
-            this.updateUI();
-        } catch (error) {
-            console.error('게임 데이터 로드 오류:', error);
-            // 기본값 사용
-            this.gameData = window.dbManager.getDefaultUserData();
+            // 로컬 스토리지에도 저장
+            await this.saveGameData();
+            console.log('✅ 데이터베이스에서 로드 후 로컬 저장');
+        } catch (dbError) {
+            // 3순위: 기본값 사용
+            this.gameData = this.getDefaultGameData();
+            await this.saveGameData();
+            console.log('✅ 기본 데이터로 시작');
         }
+        
+        this.updateUI();
+    } catch (error) {
+        console.error('❌ 게임 데이터 로드 오류:', error);
+        this.gameData = this.getDefaultGameData();
+        this.updateUI();
     }
+}
+
+// 기본 게임 데이터
+getDefaultGameData() {
+    return {
+        id: 'local_user_' + Date.now(),
+        username: '학습자',
+        level: 1,
+        exp: 0,
+        exp_required: 100,
+        coins: 0,
+        total_correct: 0,
+        total_wrong: 0,
+        max_streak: 0,
+        current_skin: '🧑‍🎓',
+        current_theme: 'default',
+        last_login: new Date().toISOString(),
+        created_at: new Date().toISOString()
+    };
+}
     
-    // 게임 데이터 저장
-    async saveGameData() {
+    // 강화된 게임 데이터 저장
+async saveGameData() {
+    try {
+        // 항상 로컬 스토리지에 저장 (최우선)
+        this.gameData.last_login = new Date().toISOString();
+        localStorage.setItem('multiplicationMaster', JSON.stringify(this.gameData));
+        console.log('✅ 로컬 스토리지 저장 성공');
+        
+        // 데이터베이스 백업도 시도 (실패해도 괜찮음)
         try {
             await window.dbManager.updateUserProgress(this.gameData);
-        } catch (error) {
-            console.error('게임 데이터 저장 오류:', error);
+            console.log('✅ 데이터베이스 백업 성공');
+        } catch (dbError) {
+            console.log('⚠️ 데이터베이스 백업 실패 (로컬은 안전)');
         }
+    } catch (error) {
+        console.error('❌ 게임 데이터 저장 오류:', error);
     }
+}
     
     // 일일 퀘스트 로드
     async loadDailyQuests() {
@@ -455,6 +506,7 @@ class MultiplicationMaster {
             }
         }
         
+        await this.saveGameData();
         this.updateUI();
     }
     
