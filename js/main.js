@@ -880,6 +880,7 @@ loadSavedTheme() {
 }
     
     // 설정 화면 표시
+    showSettings() {
    const buttons = [
         {
             text: '데이터 초기화',
