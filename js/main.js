@@ -645,7 +645,13 @@ async saveGameData() {
                 { id: 'skin_3', icon: '🧙‍♂️', name: '마법사', price: 100, level_required: 5, item_type: 'skin' },
                 { id: 'skin_4', icon: '🦸‍♂️', name: '슈퍼히어로', price: 150, level_required: 8, item_type: 'skin' },
                 { id: 'skin_5', icon: '👨‍🚀', name: '우주비행사', price: 200, level_required: 10, item_type: 'skin' },
-                { id: 'skin_6', icon: '🤖', name: '로봇', price: 250, level_required: 15, item_type: 'skin' }
+                { id: 'skin_6', icon: '🤖', name: '로봇', price: 250, level_required: 15, item_type: 'skin' },
+                { id: 'skin_7', icon: '🦄', name: '유니콘', price: 300, level_required: 12, item_type: 'skin' },
+                { id: 'skin_8', icon: '🐉', name: '용', price: 400, level_required: 15, item_type: 'skin' },
+                { id: 'skin_9', icon: '👸', name: '공주', price: 250, level_required: 8, item_type: 'skin' },
+                { id: 'skin_10', icon: '🤠', name: '카우보이', price: 200, level_required: 6, item_type: 'skin' },
+                { id: 'skin_11', icon: '🧚‍♀️', name: '요정', price: 350, level_required: 10, item_type: 'skin' },
+                { id: 'skin_12', icon: '🦸‍♀️', name: '여자영웅', price: 180, level_required: 7, item_type: 'skin' }
             ];
             
             let skins = [];
@@ -766,9 +772,83 @@ async saveGameData() {
     
     // 배경 테마 로드
     async loadBackgroundThemes() {
-        const themesContainer = document.getElementById('background-themes');
-        themesContainer.innerHTML = '<p class="text-white opacity-60 text-center">테마 기능은 곧 추가될 예정입니다!</p>';
+    const themesContainer = document.getElementById('background-themes');
+    
+    const localThemes = [
+        { id: 'theme_1', name: '기본', price: 0, colors: ['#667eea', '#764ba2'], level_required: 1 },
+        { id: 'theme_2', name: '숲', price: 80, colors: ['#11998e', '#38ef7d'], level_required: 5 },
+        { id: 'theme_3', name: '바다', price: 100, colors: ['#2980B9', '#6BB6FF'], level_required: 7 },
+        { id: 'theme_4', name: '노을', price: 120, colors: ['#ff9a9e', '#fecfef'], level_required: 10 },
+        { id: 'theme_5', name: '우주', price: 200, colors: ['#0c0c0c', '#434343'], level_required: 15 },
+        { id: 'theme_6', name: '벚꽃', price: 150, colors: ['#ffecd2', '#fcb69f'], level_required: 12 }
+    ];
+    
+    // 소유한 테마들 확인
+    const ownedThemesLocal = localStorage.getItem('ownedThemes');
+    let ownedThemeIds = ownedThemesLocal ? JSON.parse(ownedThemesLocal) : ['theme_1'];
+    
+    // 현재 선택된 테마
+    const currentTheme = localStorage.getItem('currentTheme') || 'theme_1';
+    
+    themesContainer.innerHTML = '';
+    
+    localThemes.forEach(theme => {
+        const owned = ownedThemeIds.includes(theme.id);
+        const selected = currentTheme === theme.id;
+        const canAfford = this.gameData.coins >= theme.price;
+        const levelMet = this.gameData.level >= theme.level_required;
+        
+        const themeElement = document.createElement('div');
+        themeElement.className = `skin-item ${selected ? 'skin-selected' : ''} ${!owned && (!canAfford || !levelMet) ? 'skin-locked' : ''}`;
+        themeElement.style.background = `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})`;
+        
+        themeElement.innerHTML = `
+            <div class="text-4xl mb-2">🎨</div>
+            <h4 class="font-bold text-white text-sm drop-shadow-lg">${theme.name}</h4>
+            ${!levelMet && !owned ? 
+                `<p class="text-red-200 text-xs">레벨 ${theme.level_required} 필요</p>` :
+                owned ? 
+                    (selected ? '<p class="text-green-200 text-xs">사용중</p>' : '<p class="text-blue-200 text-xs cursor-pointer">적용하기</p>') :
+                    `<p class="text-yellow-200 text-xs">${canAfford ? '구매하기' : '잠김'}</p>
+                     <p class="text-yellow-200 text-xs font-bold">${theme.price} 코인</p>`
+            }
+        `;
+        
+        if (owned && !selected && levelMet) {
+            themeElement.addEventListener('click', () => this.applyTheme(theme));
+        } else if (!owned && canAfford && levelMet) {
+            themeElement.addEventListener('click', () => this.buyTheme(theme));
+        }
+        
+        themesContainer.appendChild(themeElement);
+    });
+}
+
+// 테마 구매
+async buyTheme(theme) {
+    if (this.gameData.coins >= theme.price) {
+        this.gameData.coins -= theme.price;
+        
+        const ownedThemesLocal = localStorage.getItem('ownedThemes');
+        let ownedThemeIds = ownedThemesLocal ? JSON.parse(ownedThemesLocal) : ['theme_1'];
+        ownedThemeIds.push(theme.id);
+        localStorage.setItem('ownedThemes', JSON.stringify(ownedThemeIds));
+        
+        await this.saveGameData();
+        this.updateUI();
+        this.loadBackgroundThemes();
+        
+        this.showNotification('🎨', `새 테마 "${theme.name}"을 구매했어요!`);
     }
+}
+
+// 테마 적용
+async applyTheme(theme) {
+    localStorage.setItem('currentTheme', theme.id);
+    document.body.style.background = `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})`;
+    this.loadBackgroundThemes();
+    this.showNotification('✨', `테마 "${theme.name}"을 적용했어요!`);
+}
     
     // 설정 화면 표시
     showSettings() {
