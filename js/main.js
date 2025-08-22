@@ -695,8 +695,11 @@ async saveGameData() {
                         `<p class="text-red-500 text-xs">레벨 ${skin.level_required} 필요</p>` :
                         owned ? 
                             (selected ? '<p class="text-green-500 text-xs">착용중</p>' : '<p class="text-blue-500 text-xs cursor-pointer">착용하기</p>') :
-                            `<p class="text-yellow-600 text-xs">${canAfford ? '구매하기' : '잠김'}</p>
-                             <p class="text-yellow-600 text-xs font-bold">${skin.price} 코인</p>`
+                            canAfford ? 
+    `<div class="text-yellow-600 text-xs">구매하기</div>
+     <div class="text-yellow-600 text-xs font-bold">${skin.price} 코인</div>` : 
+    `<div class="text-red-500 text-xs">잠김</div>
+     <div class="text-yellow-600 text-xs font-bold">${skin.price} 코인</div>`
                     }
                 `;
                 
@@ -813,8 +816,11 @@ async saveGameData() {
                 `<p class="text-red-200 text-xs">레벨 ${theme.level_required} 필요</p>` :
                 owned ? 
                     (selected ? '<p class="text-green-200 text-xs">사용중</p>' : '<p class="text-blue-200 text-xs cursor-pointer">적용하기</p>') :
-                    `<p class="text-yellow-200 text-xs">${canAfford ? '구매하기' : '잠김'}</p>
-                     <p class="text-yellow-200 text-xs font-bold">${theme.price} 코인</p>`
+                   canAfford ? 
+    `<div class="text-yellow-200 text-xs">구매하기</div>
+     <div class="text-yellow-200 text-xs font-bold">${theme.price} 코인</div>` : 
+    `<div class="text-red-200 text-xs">잠김</div>
+     <div class="text-yellow-200 text-xs font-bold">${theme.price} 코인</div>`
             }
         `;
         
@@ -874,9 +880,53 @@ loadSavedTheme() {
 }
     
     // 설정 화면 표시
-    showSettings() {
-        this.showNotification('⚙️', '설정 기능은 곧 추가될 예정입니다!');
+   const buttons = [
+        {
+            text: '데이터 초기화',
+            className: 'bg-red-500 hover:bg-red-600 text-white',
+            onClick: () => this.resetGameData()
+        },
+        {
+            text: '취소',
+            className: 'bg-gray-500 hover:bg-gray-600 text-white',
+            onClick: () => {}
+        }
+    ];
+    
+    if (window.uiManager) {
+        window.uiManager.showModal(
+            '⚙️ 게임 설정',
+            '게임 데이터를 초기화하면 모든 진행사항이 삭제됩니다.<br><strong>정말로 초기화하시겠습니까?</strong>',
+            buttons
+        );
+    } else {
+        // 간단한 확인창
+        if (confirm('정말로 게임 데이터를 초기화하시겠습니까?\n모든 진행사항이 삭제됩니다.')) {
+            this.resetGameData();
+        }
     }
+}
+
+// 게임 데이터 초기화 함수
+resetGameData() {
+    // 로컬 스토리지 완전 삭제
+    localStorage.removeItem('multiplicationMaster');
+    localStorage.removeItem('ownedSkins');
+    localStorage.removeItem('ownedThemes');
+    localStorage.removeItem('currentTheme');
+    localStorage.removeItem('dailyQuests');
+    localStorage.removeItem('lastQuestDate');
+    
+    // 기본 배경으로 되돌리기
+    document.body.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+    
+    // 페이지 새로고침
+    this.showNotification('✅', '게임 데이터가 초기화되었습니다!\\n잠시 후 페이지가 새로고침됩니다.');
+    
+    setTimeout(() => {
+        location.reload();
+    }, 2000);
+}
 }
 
 // 앱 초기화
