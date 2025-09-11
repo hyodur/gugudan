@@ -651,6 +651,7 @@ class MultiplicationMaster {
         try {
             // 로컬 스킨 데이터 (데이터베이스 연결 실패 시 사용)
             const localSkins = [
+                // 기본 스킨들 (레벨 1-15)
                 { id: 'skin_1', icon: '🧑‍🎓', name: '학생', price: 0, level_required: 1, item_type: 'skin' },
                 { id: 'skin_2', icon: '👨‍🏫', name: '선생님', price: 50, level_required: 3, item_type: 'skin' },
                 { id: 'skin_3', icon: '🧙‍♂️', name: '마법사', price: 100, level_required: 5, item_type: 'skin' },
@@ -662,21 +663,21 @@ class MultiplicationMaster {
                 { id: 'skin_9', icon: '👸', name: '공주', price: 250, level_required: 8, item_type: 'skin' },
                 { id: 'skin_10', icon: '🤠', name: '카우보이', price: 200, level_required: 6, item_type: 'skin' },
                 { id: 'skin_11', icon: '🧚‍♀️', name: '요정', price: 350, level_required: 10, item_type: 'skin' },
-                { id: 'skin_12', icon: '🦸‍♀️', name: '여자영웅', price: 180, level_required: 7, item_type: 'skin' }
+                { id: 'skin_12', icon: '🦸‍♀️', name: '여자영웅', price: 180, level_required: 7, item_type: 'skin' },
+                
+                // 프리미엄 스킨들 (레벨 16-25) - 채윤이 전용!
+                { id: 'skin_13', icon: '👑', name: '여왕', price: 500, level_required: 16, item_type: 'skin' },
+                { id: 'skin_14', icon: '🧝‍♀️', name: '엘프', price: 550, level_required: 17, item_type: 'skin' },
+                { id: 'skin_15', icon: '🧞‍♀️', name: '지니', price: 600, level_required: 18, item_type: 'skin' },
+                { id: 'skin_16', icon: '🧛‍♀️', name: '뱀파이어', price: 650, level_required: 19, item_type: 'skin' },
+                { id: 'skin_17', icon: '🦋', name: '나비요정', price: 700, level_required: 20, item_type: 'skin' },
+                { id: 'skin_18', icon: '⚡', name: '번개의신', price: 750, level_required: 22, item_type: 'skin' },
+                { id: 'skin_19', icon: '🌟', name: '별의여신', price: 800, level_required: 24, item_type: 'skin' },
+                { id: 'skin_20', icon: '🏆', name: '구구단마스터', price: 1000, level_required: 25, item_type: 'skin' }
             ];
             
-            let skins = [];
-            try {
-                // 데이터베이스에서 가져오기 시도
-                const allItems = await window.dbManager.getShopItems();
-                skins = allItems.filter(item => item.item_type === 'skin');
-                if (skins.length === 0) {
-                    skins = localSkins; // 빈 배열이면 로컬 데이터 사용
-                }
-            } catch (error) {
-                console.log('데이터베이스 연결 실패, 로컬 데이터 사용');
-                skins = localSkins; // 오류 시 로컬 데이터 사용
-            }
+            // 항상 로컬 데이터 사용 (12개 스킨)
+            let skins = localSkins;
             
             // 소유한 스킨들 확인 (로컬 스토리지에서)
             const ownedSkinsLocal = localStorage.getItem('ownedSkins');
@@ -789,12 +790,21 @@ class MultiplicationMaster {
         const themesContainer = document.getElementById('background-themes');
         
         const localThemes = [
+            // 기본 테마들 (레벨 1-15)
             { id: 'theme_1', name: '기본', price: 0, colors: ['#667eea', '#764ba2'], level_required: 1 },
             { id: 'theme_2', name: '숲', price: 80, colors: ['#11998e', '#38ef7d'], level_required: 5 },
             { id: 'theme_3', name: '바다', price: 100, colors: ['#2980B9', '#6BB6FF'], level_required: 7 },
             { id: 'theme_4', name: '노을', price: 120, colors: ['#ff9a9e', '#fecfef'], level_required: 10 },
             { id: 'theme_5', name: '우주', price: 200, colors: ['#0c0c0c', '#434343'], level_required: 15 },
-            { id: 'theme_6', name: '벚꽃', price: 150, colors: ['#ffecd2', '#fcb69f'], level_required: 12 }
+            { id: 'theme_6', name: '벚꽃', price: 150, colors: ['#ffecd2', '#fcb69f'], level_required: 12 },
+            
+            // 프리미엄 테마들 (레벨 16-25) - 채윤이 전용!
+            { id: 'theme_7', name: '라벤더', price: 300, colors: ['#a8edea', '#fed6e3'], level_required: 16 },
+            { id: 'theme_8', name: '오로라', price: 350, colors: ['#d299c2', '#fef9d7'], level_required: 18 },
+            { id: 'theme_9', name: '화산', price: 400, colors: ['#ff416c', '#ff4b2b'], level_required: 20 },
+            { id: 'theme_10', name: '빙하', price: 450, colors: ['#74b9ff', '#0984e3'], level_required: 22 },
+            { id: 'theme_11', name: '황금', price: 500, colors: ['#f7971e', '#ffd200'], level_required: 24 },
+            { id: 'theme_12', name: '무지개', price: 600, colors: ['#ff9a9e', '#fecfef', '#ffecd2'], level_required: 25 }
         ];
         
         // 소유한 테마들 확인
@@ -876,7 +886,13 @@ class MultiplicationMaster {
                 'theme_3': ['#2980B9', '#6BB6FF'], // 바다  
                 'theme_4': ['#ff9a9e', '#fecfef'], // 노을
                 'theme_5': ['#0c0c0c', '#434343'], // 우주
-                'theme_6': ['#ffecd2', '#fcb69f']  // 벚꽃
+                'theme_6': ['#ffecd2', '#fcb69f'], // 벚꽃
+                'theme_7': ['#a8edea', '#fed6e3'], // 라벤더
+                'theme_8': ['#d299c2', '#fef9d7'], // 오로라
+                'theme_9': ['#ff416c', '#ff4b2b'], // 화산
+                'theme_10': ['#74b9ff', '#0984e3'], // 빙하
+                'theme_11': ['#f7971e', '#ffd200'], // 황금
+                'theme_12': ['#ff9a9e', '#fecfef'] // 무지개 (첫 두 색상만)
             };
             
             if (themeData[currentTheme]) {
